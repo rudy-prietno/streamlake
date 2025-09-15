@@ -4,6 +4,7 @@ Designed for scalable streaming ingestion, cost-efficient storage, and near real
 
 ## 🔄 Architecture Workflow
 
+```mermaid
 flowchart TD
   %% Source
   subgraph Source
@@ -11,8 +12,8 @@ flowchart TD
   end
 
   %% Kafka Connect
-  subgraph Kafka_Connect[Kafka Connect]
-    B[CDC via Kafka Connect Plugin Debezium]
+  subgraph KafkaConnect[Kafka Connect]
+    B[CDC via Debezium]
   end
 
   %% MSK
@@ -35,13 +36,13 @@ flowchart TD
 
   %% Jobs
   subgraph Jobs
-    H[Micro-Batching Jobs (Python)]
-    I[Batching Jobs (Python)]
+    H[Micro-Batching (Python)]
+    I[Batching (Python)]
   end
 
   %% Athena
   subgraph Athena
-    J[Athena]
+    J[Athena Queries & Views]
   end
 
   A --> B --> C --> D --> E
@@ -49,4 +50,4 @@ flowchart TD
   E --> H --> F
   F --> I --> G
   G --> J
-
+```
