@@ -45,9 +45,16 @@ flowchart TD
     J["Athena Queries & Views"]
   end
 
+
+  %% Metabase
+  subgraph Metabase
+    K["Metabase BI Tools"]
+  end
+
   A --> B --> C --> D --> E
   C --> Cnote
   E --> H --> F
   F --> I --> G
   G --> J
+  J --> K
 ```
