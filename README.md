@@ -19,7 +19,7 @@ flowchart TD
   %% MSK
   subgraph MSK
     C["MSK - Kafka Topics"]
-    Cnote(("JSON Schemas"))
+    Cnote(("JSON Schemas [Kafka Registry]"))
   end
 
   %% Firehose
