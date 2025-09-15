@@ -4,41 +4,49 @@ Designed for scalable streaming ingestion, cost-efficient storage, and near real
 
 ## 🔄 Architecture Workflow
 
-```mermaid
 flowchart TD
-    subgraph Source
-        A[RDS PostgreSQL]
-    end
+  %% Source
+  subgraph Source
+    A[RDS PostgreSQL]
+  end
 
-    subgraph KafkaConnect[Kafka Connect]
-        B[Debezium CDC Plugin]
-    end
+  %% Kafka Connect
+  subgraph Kafka_Connect[Kafka Connect]
+    B[CDC via Kafka Connect Plugin Debezium]
+  end
 
-    subgraph MSK
-        C[MSK - Kafka Topics]
-        noteC[(JSON Schemas)]
-    end
+  %% MSK
+  subgraph MSK
+    C[MSK - Kafka Topics]
+    Cnote[[JSON Schemas]]
+  end
 
-    subgraph Firehose[Kinesis Firehose]
-        D[Dynamic Partitioning + Transform]
-    end
+  %% Firehose
+  subgraph Firehose[Kinesis Firehose]
+    D[Dynamic Partitioning + Transform]
+  end
 
-    subgraph S3[S3 Data Lake]
-        E[bronze/ (raw)]
-        F[silver/ (cleansed & deduped)]
-        G[gold/ (curated marts)]
-    end
+  %% S3 Data Lake
+  subgraph S3[S3 Data Lake]
+    E[bronze/ (raw)]
+    F[silver/ (cleansed & deduped)]
+    G[gold/ (curated marts)]
+  end
 
-    subgraph Jobs
-        H[Micro-Batching Jobs (Python)]
-        I[Batching Jobs (Python)]
-    end
+  %% Jobs
+  subgraph Jobs
+    H[Micro-Batching Jobs (Python)]
+    I[Batching Jobs (Python)]
+  end
 
-    subgraph Athena
-        J[Athena Queries & Views]
-    end
+  %% Athena
+  subgraph Athena
+    J[Athena]
+  end
 
-    A --> B --> C --> D --> E
-    E --> H --> F
-    F --> I --> G
-    G --> J
+  A --> B --> C --> D --> E
+  C --> Cnote
+  E --> H --> F
+  F --> I --> G
+  G --> J
+
