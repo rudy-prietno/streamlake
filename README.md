@@ -8,41 +8,41 @@ Designed for scalable streaming ingestion, cost-efficient storage, and near real
 flowchart TD
   %% Source
   subgraph Source
-    A[RDS PostgreSQL]
+    A["RDS PostgreSQL"]
   end
 
   %% Kafka Connect
-  subgraph KafkaConnect[Kafka Connect]
-    B[CDC via Debezium]
+  subgraph KafkaConnect["Kafka Connect"]
+    B["CDC via Debezium"]
   end
 
   %% MSK
   subgraph MSK
-    C[MSK - Kafka Topics]
-    Cnote[[JSON Schemas]]
+    C["MSK - Kafka Topics"]
+    Cnote(("JSON Schemas"))
   end
 
   %% Firehose
-  subgraph Firehose[Kinesis Firehose]
-    D[Dynamic Partitioning + Transform]
+  subgraph Firehose["Kinesis Firehose"]
+    D["Dynamic Partitioning + Transform"]
   end
 
   %% S3 Data Lake
-  subgraph S3[S3 Data Lake]
-    E[bronze/ (raw)]
-    F[silver/ (cleansed & deduped)]
-    G[gold/ (curated marts)]
+  subgraph S3["S3 Data Lake"]
+    E["bronze · raw"]
+    F["silver · cleansed & deduped"]
+    G["gold · curated marts"]
   end
 
   %% Jobs
   subgraph Jobs
-    H[Micro-Batching (Python)]
-    I[Batching (Python)]
+    H["Micro-Batching (Python)"]
+    I["Batching (Python)"]
   end
 
   %% Athena
   subgraph Athena
-    J[Athena Queries & Views]
+    J["Athena Queries & Views"]
   end
 
   A --> B --> C --> D --> E
@@ -50,3 +50,4 @@ flowchart TD
   E --> H --> F
   F --> I --> G
   G --> J
+```
