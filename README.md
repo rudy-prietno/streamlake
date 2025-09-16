@@ -36,25 +36,22 @@ flowchart LR
   KC1 --> MSK
   KC2 --> MSK
 
-  %% Kafka UI access
-  KUI --> KC1
-  KUI --> KC2
-  KUI --> REG
+  %% Kafka UI points to the whole stack
+  KUI --> KAFKA_STACK
 
-  %% Stream to Firehose (latency note)
+  %% Stream to Firehose and S3
   MSK -- "2 seconds" --> KFH
-
-  %% Firehose to S3 (buffer/flush)
   KFH -- "5 minutes" --> S3
 
-  %% S3 to Athena via External Table
+  %% S3 -> Athena via External Table
   S3 --> EXT --> ATH
-
-  %% Metabase queries Athena
   META --> ATH
 
   %% Micro-batch path to Iceberg
   S3 --> MB
   MB -- "15-20 minutes" --> ICE
   ICE --> ATH
+
+  %% Optional style for the stack area
+  style KAFKA_STACK fill:#fffbe6,stroke:#888,stroke-width:1px,stroke-dasharray: 5 5
 ```
