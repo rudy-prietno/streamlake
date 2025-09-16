@@ -1,0 +1,32 @@
+version: "3.8"
+
+services:
+  schema-registry:
+    image: schema-registry
+    container_name: schema-registry
+    restart: always
+    ports:
+      - "8081:8081"
+    entrypoint: ["/init/entrypoint.sh", "bash", "-c", "/etc/confluent/docker/run"]
+    environment:
+      SCHEMA_REGISTRY_HOST_NAME: schema-registry
+      SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8081
+      SCHEMA_REGISTRY_KAFKASTORE_SECURITY_PROTOCOL: SASL_SSL
+      SCHEMA_REGISTRY_KAFKASTORE_SASL_MECHANISM: SCRAM-SHA-512
+      SCHEMA_REGISTRY_MODE_MUTABILITY: "true"
+      SCHEMA_REGISTRY_AVRO_COMPATIBILITY_LEVEL: "BACKWARD"
+      SCHEMA_REGISTRY_SCHEMA_COMPATIBILITY_LEVEL: "BACKWARD"
+      SCHEMA_REGISTRY_LEADER_ELIGIBILITY: "true"
+      SCHEMA_REGISTRY_HEAP_OPTS: "-Xms512M -Xmx512M"
+    volumes:
+      - ./entrypoint.sh:/init/entrypoint.sh:ro
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
