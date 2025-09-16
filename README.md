@@ -8,31 +8,31 @@ Designed for scalable streaming ingestion, cost-efficient storage, and near real
 flowchart LR
   %% ===== Left block =====
   DB[DB Prod]
-  Nginx[Nginx]
+  NGINX[Nginx]
 
-  subgraph Kafka_Stack[Kafka Stack]
-    KC1[Kafka Connect [01]]
-    KC2[Kafka Connect [02]]
-    REG[Kafka Registry]
-    MSK[MSK (broker)]
+  subgraph KAFKA_STACK[Kafka Stack]
+    KC1["Kafka Connect 01"]
+    KC2["Kafka Connect 02"]
+    REG["Kafka Registry"]
+    MSK["MSK (broker)"]
   end
 
-  KUI[Kafka UI]
+  KUI["Kafka UI"]
 
   %% ===== Middle / Right block =====
-  KFH[Kinesis Firehose]
-  S3[S3]
-  EXT[External Table]
-  ATH[DB Athena]
-  META[Metabase]
-  MB[Micro Batch]
-  ICE[Iceberg Table]
+  KFH["Kinesis Firehose"]
+  S3["S3"]
+  EXT["External Table"]
+  ATH["DB Athena"]
+  META["Metabase"]
+  MB["Micro Batch"]
+  ICE["Iceberg Table"]
 
   %% ===== Flows =====
-  DB --> Nginx
-  Nginx --> KC1
-  Nginx --> KC2
-  Nginx --> REG
+  DB --> NGINX
+  NGINX --> KC1
+  NGINX --> KC2
+  NGINX --> REG
   KC1 --> MSK
   KC2 --> MSK
 
@@ -42,10 +42,10 @@ flowchart LR
   KUI --> REG
 
   %% Stream to Firehose (latency note)
-  MSK -- 2 seconds --> KFH
+  MSK -- "2 seconds" --> KFH
 
   %% Firehose to S3 (buffer/flush)
-  KFH -- 5 minutes --> S3
+  KFH -- "5 minutes" --> S3
 
   %% S3 to Athena via External Table
   S3 --> EXT --> ATH
@@ -55,7 +55,6 @@ flowchart LR
 
   %% Micro-batch path to Iceberg
   S3 --> MB
-  MB -- 15-20 minutes --> ICE
+  MB -- "15-20 minutes" --> ICE
   ICE --> ATH
-
 ```
