@@ -45,7 +45,7 @@ flowchart LR
 
   %% S3 -> Athena via External Table
   S3 --> EXT --> ATH
-  META --> ATH
+  ATH --> META
 
   %% Micro-batch path to Iceberg
   S3 --> MB
