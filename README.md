@@ -49,7 +49,7 @@ flowchart LR
   ATH --> META
 
   %% Micro-batch path to Iceberg
-  S3 --> MB
+  EXT --> MB
   MB -- "15-20 minutes" --> ICE
   ICE --> ATH
 
