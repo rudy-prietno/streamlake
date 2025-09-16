@@ -23,6 +23,7 @@ flowchart LR
   KFH["Kinesis Firehose"]
   S3["S3"]
   EXT["External Table"]
+  VIEW["View Table with Deduplication"]
   ATH["Athena"]
   META["Metabase"]
   MB["Micro Batch"]
@@ -44,7 +45,7 @@ flowchart LR
   KFH -- "5 minutes" --> S3
 
   %% S3 -> Athena via External Table
-  S3 --> EXT --> ATH
+  S3 --> EXT --> VIEW --> ATH
   ATH --> META
 
   %% Micro-batch path to Iceberg
