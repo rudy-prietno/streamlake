@@ -23,7 +23,7 @@ flowchart LR
   KFH["Kinesis Firehose"]
   S3["S3"]
   EXT["External Table"]
-  ATH["DB Athena"]
+  ATH["Athena"]
   META["Metabase"]
   MB["Micro Batch"]
   ICE["Iceberg Table"]
