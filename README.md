@@ -5,56 +5,57 @@ Designed for scalable streaming ingestion, cost-efficient storage, and near real
 ## 🔄 Architecture Workflow
 
 ```mermaid
-flowchart TD
-  %% Source
-  subgraph Source
-    A["RDS PostgreSQL"]
+flowchart LR
+  %% ===== Left block =====
+  DB[DB Prod]
+  Nginx[Nginx]
+
+  subgraph Kafka_Stack[Kafka Stack]
+    KC1[Kafka Connect [01]]
+    KC2[Kafka Connect [02]]
+    REG[Kafka Registry]
+    MSK[MSK (broker)]
   end
 
-  %% Kafka Connect
-  subgraph KafkaConnect["Kafka Connect"]
-    B["CDC via Debezium"]
-  end
+  KUI[Kafka UI]
 
-  %% MSK
-  subgraph MSK
-    C["MSK - Kafka Topics"]
-    Cnote(("JSON Schemas [Kafka Registry]"))
-  end
+  %% ===== Middle / Right block =====
+  KFH[Kinesis Firehose]
+  S3[S3]
+  EXT[External Table]
+  ATH[DB Athena]
+  META[Metabase]
+  MB[Micro Batch]
+  ICE[Iceberg Table]
 
-  %% Firehose
-  subgraph Firehose["Kinesis Firehose"]
-    D["Dynamic Partitioning + Transform"]
-  end
+  %% ===== Flows =====
+  DB --> Nginx
+  Nginx --> KC1
+  Nginx --> KC2
+  Nginx --> REG
+  KC1 --> MSK
+  KC2 --> MSK
 
-  %% S3 Data Lake
-  subgraph S3["S3 Data Lake"]
-    E["bronze · raw"]
-    F["silver · cleansed & deduped"]
-    G["gold · curated marts"]
-  end
+  %% Kafka UI access
+  KUI --> KC1
+  KUI --> KC2
+  KUI --> REG
 
-  %% Jobs
-  subgraph Jobs
-    H["Micro-Batching (Python)"]
-    I["Batching (Python)"]
-  end
+  %% Stream to Firehose (latency note)
+  MSK -- 2 seconds --> KFH
 
-  %% Athena
-  subgraph Athena
-    J["Athena Queries & Views"]
-  end
+  %% Firehose to S3 (buffer/flush)
+  KFH -- 5 minutes --> S3
 
+  %% S3 to Athena via External Table
+  S3 --> EXT --> ATH
 
-  %% Metabase
-  subgraph Metabase
-    K["Metabase BI Tools"]
-  end
+  %% Metabase queries Athena
+  META --> ATH
 
-  A --> B --> C --> D --> E
-  C --> Cnote
-  E --> H --> F
-  F --> I --> G
-  G --> J
-  J --> K
+  %% Micro-batch path to Iceberg
+  S3 --> MB
+  MB -- 15-20 minutes --> ICE
+  ICE --> ATH
+
 ```
