@@ -7,7 +7,7 @@ Designed for scalable streaming ingestion, cost-efficient storage, and near real
 ```mermaid
 flowchart LR
   %% ===== Left block =====
-  DB[DB Prod]
+  DB[RDS PostgreSQL]
   NGINX[Nginx]
 
   subgraph KAFKA_STACK[Kafka Stack]
