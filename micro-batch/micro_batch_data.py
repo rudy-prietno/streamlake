@@ -63,6 +63,8 @@ Usage Examples:
       --op-literal cron-2-hours \
       --athena-output s3://my-bucket/athena/results/ \
       --workgroup primary \
+      --dedupe-source\
+      --dedupe-tiebreakers "created_at,order_id,product_id" \
       --debug
 
   Full run (Stage + Merge) with cleanup:
@@ -83,6 +85,8 @@ Usage Examples:
       --drop-staging-after-merge \
       --purge-staging-objects \
       --sslmode require \
+      --dedupe-source\
+      --dedupe-tiebreakers "created_at,order_id,product_id" \
       --debug
 """
 
