@@ -1,0 +1,19 @@
+auth:
+  type: LOGIN_FORM
+kafka:
+  clusters:
+  - bootstrapServers: endpoint-msk-cluster-01:9096,endpoint-msk-cluster-02:9096,endpoint-msk-cluster-03:9096
+    kafkaConnect:
+    - address: http://IP-EC2-NGINX:8083
+      name: kafka-connect
+    name: msk-production-cluster
+    properties:
+      security.protocol: SASL_SSL
+      sasl.mechanism: SCRAM-SHA-512
+      sasl.jaas.config: org.apache.kafka.common.security.scram.ScramLoginModule required
+        username="username" password="password";
+    readOnly: false
+    schemaRegistry: http://IP-EC2-NGINX:8081
+rbac:
+  roles: []
+webclient: {}
