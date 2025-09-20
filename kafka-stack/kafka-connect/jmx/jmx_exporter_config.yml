@@ -1,0 +1,20 @@
+startDelaySeconds: 0
+lowercaseOutputName: true
+lowercaseOutputLabelNames: true
+rules:
+  - pattern: "kafka.connect<type=connector-metrics, connector=(.+)><>([a-zA-Z0-9._-]+)"
+    name: "kafka_connect_connector_$2"
+    labels:
+      connector: "$1"
+    type: GAUGE
+
+  - pattern: "kafka.connect<type=task-metrics, connector=(.+), task=(\\d+)><>([a-zA-Z0-9._-]+)"
+    name: "kafka_connect_task_$3"
+    labels:
+      connector: "$1"
+      task: "$2"
+    type: GAUGE
+
+  - pattern: "kafka.connect<type=connect-worker-metrics><>([a-zA-Z0-9._-]+)"
+    name: "kafka_connect_worker_$1"
+    type: GAUGE
