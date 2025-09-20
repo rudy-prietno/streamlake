@@ -41,8 +41,9 @@ Key Features:
 Usage Examples:
   Stage only (PostgreSQL → S3/Glue):
 
-    python wr.py --mode stage-only \
-      --secret-id glue/backfill/prod --region ap-southeast-3 \
+    python micro_batch_data.py --mode stage-only \
+      --secret-id glue/backfill/prod \
+      --region ap-southeast-3 \
       --pg-sql "SELECT * FROM public.accounts" \
       --pg-schema public --pg-table accounts --align-ddl \
       --s3-staging-path s3://my-bucket/staging/accounts/ \
@@ -52,8 +53,9 @@ Usage Examples:
 
   Merge only (Staging → Production Iceberg):
 
-    python wr.py --mode merge-only \
-      --secret-id glue/backfill/prod --region ap-southeast-3 \
+    python micro_batch_data.py --mode merge-only \
+      --secret-id glue/backfill/prod \
+      --region ap-southeast-3 \
       --region ap-southeast-3 \
       --glue-db prod_silver \
       --staging-table stg_order_product \
@@ -69,8 +71,9 @@ Usage Examples:
 
   Full run (Stage + Merge) with cleanup:
 
-    python wr.py --mode full-run \
-      --secret-id glue/backfill/prod --region ap-southeast-3 \
+    python micro_batch_data.py --mode full-run \
+      --secret-id glue/backfill/prod \
+      --region ap-southeast-3 \
       --pg-sql "SELECT concat(order_id, '', product_id) AS unique_id, * FROM public.order_product" \
       --pg-schema public --pg-table order_product \
       --align-ddl --relax-align \
