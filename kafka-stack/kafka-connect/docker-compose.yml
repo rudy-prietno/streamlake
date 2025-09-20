@@ -1,0 +1,91 @@
+version: '3.8'
+
+services:
+  kafka-connect:
+    image: dpay-kafka-connect:7.6.0
+    container_name: kafka-connect
+    restart: always
+    ports:
+      - "8083:8083"
+      - "9095:5556"
+    entrypoint: ["/init/entrypoint.sh", "bash", "-c", "/etc/confluent/docker/run"]
+    volumes:
+      - ~/.aws:/root/.aws:ro
+      - ./entrypoint.sh:/init/entrypoint.sh:ro
+      - ./connectors:/etc/kafka-connect/connectors
+      - ./connect-plugins:/etc/kafka-connect/jars
+      - ./plugins:/usr/share/confluent-hub-components
+      - ./client.properties:/etc/kafka/client.properties
+      - ./jmx/jmx_exporter_config.yml:/etc/jmx_exporter_config.yml
+      - ./jars/jmx_prometheus_javaagent-0.20.0.jar:/opt/jmx_prometheus_javaagent.jar
+
+    environment:
+
+      # JAAS & JMX
+      KAFKA_OPTS: "-Djava.security.auth.login.config=/etc/kafka/kafka_client_jaas.conf"
+      KAFKA_JMX_OPTS: "-javaagent:/opt/jmx_prometheus_javaagent.jar=5556:/etc/jmx_exporter_config.yml"
+
+      # Connect cluster
+      CONNECT_GROUP_ID: "connect-cluster"
+      CONNECT_REST_PORT: "8083"
+      CONNECT_REST_HOST_NAME: "kafka-connect"
+      CONNECT_REST_ADVERTISED_HOST_NAME: "kafka-connect"
+      CONNECT_REST_ADVERTISED_PORT: "8083"
+
+      CONNECT_CONFIG_STORAGE_TOPIC: "connect-configs"
+      CONNECT_OFFSET_STORAGE_TOPIC: "connect-offsets"
+      CONNECT_STATUS_STORAGE_TOPIC: "connect-status"
+
+      # Security (sesuaikan)
+      CONNECT_SECURITY_PROTOCOL: "SASL_SSL"
+      CONNECT_SASL_MECHANISM: "SCRAM-SHA-512"
+      CONNECT_PRODUCER_SECURITY_PROTOCOL: "SASL_SSL"
+      CONNECT_PRODUCER_SASL_MECHANISM: "SCRAM-SHA-512"
+      CONNECT_CONSUMER_SECURITY_PROTOCOL: "SASL_SSL"
+      CONNECT_CONSUMER_SASL_MECHANISM: "SCRAM-SHA-512"
+
+      # Internal converters
+      CONNECT_INTERNAL_KEY_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
+      CONNECT_INTERNAL_VALUE_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
+      CONNECT_INTERNAL_KEY_CONVERTER_SCHEMAS_ENABLE: "false"
+      CONNECT_INTERNAL_VALUE_CONVERTER_SCHEMAS_ENABLE: "false"
+
+      # --- Secrets Manager ConfigProvider (alias 'secrets')
+      CONNECT_PLUGIN_PATH: "/usr/share/java,/etc/kafka-connect/jars,/usr/share/confluent-hub-components/confluentinc-csid-secrets-provider-aws-1.0.44"
+      CONNECT_CONFIG_PROVIDERS: "secrets"
+      CONNECT_CONFIG_PROVIDERS_SECRETS_CLASS: "io.confluent.csid.config.provider.aws.SecretsManagerConfigProvider"
+      CONNECT_CONFIG_PROVIDERS_SECRETS_PARAM_USE_JSON: "true"
+      CONNECT_CONFIG_PROVIDERS_SECRETS_PARAM_AWS_REGION: "ap-southeast-3"
+      CONNECT_CONFIG_PROVIDERS_SECRETS_PARAM_POLLING_INTERVAL_SECONDS: "300"
+
+      KAFKA_CLASSPATH: "/usr/share/confluent-hub-components/confluentinc-csid-secrets-provider-aws-1.0.44/lib/*:/etc/kafka-connect/jars/*"
+
+      # JVM
+      KAFKA_HEAP_OPTS: "-Xms4G -Xmx6G"
+
+      # Logging
+      CONNECT_LOG4J_LOGGERS: "org.apache.kafka.connect.runtime.rest=WARN,org.reflections=ERROR"
+
+      # Producer tuning
+      CONNECT_PRODUCER_MAX_REQUEST_SIZE: "20971520"
+      CONNECT_PRODUCER_BUFFER_MEMORY: "67108864"
+      CONNECT_PRODUCER_BATCH_SIZE: "16384"
+
+      # Consumer tuning
+      CONNECT_CONSUMER_FETCH_MAX_BYTES: "20971520"
+      CONNECT_CONSUMER_MAX_PARTITION_FETCH_BYTES: "20971520"
+
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "3"
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8083/"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+    mem_limit: 10g
+    cpus: 3.5
