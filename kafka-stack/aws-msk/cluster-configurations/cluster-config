@@ -1,0 +1,16 @@
+auto.create.topics.enable=false
+default.replication.factor=3
+min.insync.replicas=2
+unclean.leader.election.enable=false
+num.partitions=12
+log.retention.hours=72
+log.segment.bytes=134217728
+message.max.bytes=73400320
+socket.request.max.bytes=100663296
+socket.receive.buffer.bytes=4194304
+socket.send.buffer.bytes=4194304
+num.io.threads=8
+num.network.threads=8
+num.replica.fetchers=3
+replica.lag.time.max.ms=30000
+compression.type=snappy
