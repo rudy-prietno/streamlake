@@ -11,6 +11,8 @@ chmod +x runners.sh
 ## Add to crontab
 ``` bash
 sudo crontab -e
+
+#input to cron
 */30 * * * * LOG_DIR=/tmp/wr/databasename LOCK_DIR=/var/lock/wr/databasename   DROP_AFTER_MERGE=1 PURGE_STAGING_OBJECTS=0 USE_DEBUG=0 KEEP_LOCAL_LOGS=0 path-folder/databasename/runner.sh >> /tmp/wr/databasename/runner.log 2>&1
 
 sudo crontab -l
