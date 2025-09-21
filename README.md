@@ -59,7 +59,7 @@ flowchart LR
 ```
 
 
-# KPI Scorecard
+# OKR Scorecard
 | KPI             | Weight | Green    | Amber       | Red         |
 | --------------- | -----: | -------- | ----------- | ----------- |
 | Success rate    |    30% | ≥ 99.5%  | 98–99.49%   | < 98%       |
