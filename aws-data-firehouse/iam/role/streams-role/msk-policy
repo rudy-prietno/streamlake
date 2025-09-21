@@ -1,0 +1,113 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "S3Access",
+            "Effect": "Allow",
+            "Action": [
+                "S3:*"
+            ],
+            "Resource": "*",
+            "Condition": {
+                "StringEquals": {
+                    "aws:ResourceAccount": "aws-account-id"
+                }
+            }
+        },
+        {
+            "Sid": "AthenaAccess",
+            "Effect": "Allow",
+            "Action": [
+                "Athena:*"
+            ],
+            "Resource": "*",
+            "Condition": {
+                "StringEquals": {
+                    "aws:ResourceAccount": "aws-account-id"
+                }
+            }
+        },
+        {
+            "Sid": "GlueAccess",
+            "Effect": "Allow",
+            "Action": [
+                "Glue:*"
+            ],
+            "Resource": "*",
+            "Condition": {
+                "StringEquals": {
+                    "aws:ResourceAccount": "aws-account-id"
+                }
+            }
+        },
+        {
+            "Sid": "KMSKeyManagementAccess",
+            "Effect": "Allow",
+            "Action": [
+                "kms:CreateKey",
+                "kms:CreateAlias",
+                "kms:UpdateAlias",
+                "kms:DeleteAlias",
+                "kms:EnableKey",
+                "kms:DisableKey",
+                "kms:ScheduleKeyDeletion",
+                "kms:CancelKeyDeletion",
+                "kms:PutKeyPolicy",
+                "kms:GetKeyPolicy",
+                "kms:ListKeyPolicies",
+                "kms:ListAliases",
+                "kms:ListKeys",
+                "kms:DescribeKey",
+                "kms:GetKeyRotationStatus",
+                "kms:EnableKeyRotation",
+                "kms:TagResource",
+                "kms:UntagResource",
+                "kms:Encrypt",
+                "kms:Decrypt"
+            ],
+            "Resource": "*",
+            "Condition": {
+                "StringEquals": {
+                    "aws:ResourceAccount": "aws-account-id"
+                }
+            }
+        },
+        {
+            "Sid": "AllowReadSpecificMSKSecret",
+            "Effect": "Allow",
+            "Action": [
+                "secretsmanager:GetSecretValue",
+                "secretsmanager:DescribeSecret",
+                "secretsmanager:ListSecrets"
+            ],
+            "Resource": "*",
+            "Condition": {
+                "StringEquals": {
+                    "aws:ResourceAccount": "aws-account-id"
+                }
+            }
+        },
+        {
+            "Sid": "MSKClusterAccess",
+            "Effect": "Allow",
+            "Action": [
+                "kafka-cluster:Connect",
+                "kafka-cluster:DescribeCluster",
+                "kafka-cluster:ReadData",
+                "kafka-cluster:WriteData",
+                "kafka-cluster:CreateTopic",
+                "kafka-cluster:DescribeTopic",
+                "kafka-cluster:DeleteTopic",
+                "kafka-cluster:AlterTopic",
+                "kafka-cluster:DescribeGroup",
+                "kafka-cluster:AlterGroup"
+            ],
+            "Resource": "*",
+            "Condition": {
+                "StringEquals": {
+                    "aws:ResourceAccount": "aws-account-id"
+                }
+            }
+        }
+    ]
+}
