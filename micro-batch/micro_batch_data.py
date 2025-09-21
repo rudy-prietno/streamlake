@@ -544,13 +544,32 @@ def _normalize_ts_type(t: str) -> str:
     return t or "varchar"
 
 
+def _is_integer_type(t: str) -> bool:
+    """Return True for integer-like target types."""
+    t = (t or "").lower().strip()
+    return t in ("integer", "bigint", "smallint")
+
+
+def _is_decimal_float_type(t: str) -> bool:
+    """Return True for decimal/float-like target types."""
+    t = (t or "").lower().strip()
+    return t.startswith("decimal") or t in ("double", "real", "float")
+
+
 def _cast_expr_for_col(col: str, target_type: Optional[str], *, op_literal: str = "backfill") -> str:
     """
-    Build RHS expression for a column, casting/synthesizing if needed.
-    - __op    -> CAST('<op_literal>' AS <target_type or varchar>)
-    - __ts_ms -> CAST(local Asia/Jakarta time string) AS target timestamp
-    - others  -> TRY_CAST(s."<col>" AS <target_type>) if known, else s."<col>"
+    Build a safe RHS expression for MERGE that:
+      - Injects literals for __op and __ts_ms.
+      - Cleans and casts numeric strings (handles NBSP, ID/EN separators, symbols).
+      - Normalizes booleans from common string variants.
+      - Trims empty strings to NULL for timestamp/date.
+      - Falls back to a plain TRY_CAST for other types.
+
+    Notes:
+      * For INTEGER-like targets: keep only the leading integer portion (drops fractional part).
+      * For DECIMAL/DOUBLE/REAL/FLOAT: normalize to EN format and preserve fractions.
     """
+    # Special metadata columns
     if col == "__op":
         tt = (target_type or "varchar")
         lit = (op_literal or "backfill").replace("'", "''")
@@ -565,10 +584,74 @@ def _cast_expr_for_col(col: str, target_type: Optional[str], *, op_literal: str 
             f"{tt})"
         )
 
+    # Generic path
     safe_col = col.replace('"', '""')
     if not target_type:
         return f's."{safe_col}"'
-    return f'TRY_CAST(s."{safe_col}" AS {_normalize_ts_type(target_type)})'
+
+    t = _normalize_ts_type(target_type)
+
+    # ---------- Numeric cleaning & casting ----------
+    if _is_integer_type(t):
+        # Base string with NBSP removed
+        base = f"TRIM(REPLACE(s.\"{safe_col}\", '\\u00A0',''))"
+        # For Indonesian-style numbers: '.' thousands → remove
+        id_thousands_removed = f"REPLACE({base}, '.', '')"
+        # For English-style numbers: ',' thousands → remove
+        en_thousands_removed = f"REPLACE({base}, ',', '')"
+
+        # Strategy:
+        # 1) Your proven regex: extract leading integer (drops any decimals).
+        # 2) ID format fallback: remove '.' thousands, take part before ',' (decimal), keep digits/sign only.
+        # 3) EN format fallback: remove ',' thousands, take part before '.' (decimal), keep digits/sign only.
+        return (
+            "COALESCE("
+            f"TRY_CAST(NULLIF(REGEXP_EXTRACT("
+            f"REGEXP_REPLACE({base}, '[^0-9\\-,\\.]', ''), '^-?[0-9]+'), '') AS {t}),"
+            f"TRY_CAST(NULLIF(REGEXP_REPLACE(SPLIT_PART({id_thousands_removed}, ',', 1), '[^0-9\\-]', ''), '') AS {t}),"
+            f"TRY_CAST(NULLIF(REGEXP_REPLACE(SPLIT_PART({en_thousands_removed}, '.', 1), '[^0-9\\-]', ''), '') AS {t})"
+            ")"
+        )
+
+    if _is_decimal_float_type(t):
+        # Base string with NBSP removed
+        base = f"TRIM(REPLACE(s.\"{safe_col}\", '\\u00A0',''))"
+        # Normalize ID → EN: remove '.' thousands, convert ',' decimal to '.'
+        id_to_en = f"REPLACE(REPLACE({base}, '.', ''), ',', '.')"
+        # EN cleanup: remove ',' thousands (keep '.' decimal)
+        en_clean = f"REPLACE({base}, ',', '')"
+
+        # Strategy:
+        # 1) Try ID→EN normalization → DOUBLE → target type (preserves fraction)
+        # 2) Try EN cleanup → DOUBLE → target type
+        # 3) Fallback: strip non [0-9.-] and cast directly
+        return (
+            "COALESCE("
+            f"TRY_CAST(TRY_CAST(NULLIF({id_to_en}, '') AS DOUBLE) AS {t}),"
+            f"TRY_CAST(TRY_CAST(NULLIF({en_clean}, '') AS DOUBLE) AS {t}),"
+            f"TRY_CAST(NULLIF(REGEXP_REPLACE({base}, '[^0-9\\-\\.]', ''), '') AS {t})"
+            ")"
+        )
+
+    # ---------- Boolean normalization ----------
+    if t == "boolean":
+        norm = f"LOWER(TRIM(s.\"{safe_col}\"))"
+        return (
+            f"CASE "
+            f"WHEN {norm} IN ('t','true','1','y','yes') THEN TRUE "
+            f"WHEN {norm} IN ('f','false','0','n','no') THEN FALSE "
+            f"ELSE NULL END"
+        )
+
+    # ---------- Timestamps/Dates: trim-empty → NULL, else cast ----------
+    if t in ("timestamp", "date"):
+        return (
+            f"CASE WHEN NULLIF(TRIM(s.\"{safe_col}\"), '') IS NULL THEN NULL "
+            f"ELSE TRY_CAST(TRIM(s.\"{safe_col}\") AS {t}) END"
+        )
+
+    # ---------- Default path ----------
+    return f'TRY_CAST(s."{safe_col}" AS {t})'
 
 
 def build_merge_sql(
